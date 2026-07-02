@@ -413,6 +413,12 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 # no-prefix: Alt+S opens the session tree (代替 Ctrl+B s)
 bind -n M-s choose-tree -Zs
 
+# Ctrl+L 只清 tmux 历史、不转发给窗格里的程序
+# 原 oh-my-tmux 绑定会 send-keys C-l 给前台程序；cc 窗格会把它当"清对话"→ 误清上下文
+# 改成 tmux 自己吃掉这个键：清历史 + 不下发，cc 永远收不到
+unbind -n C-l
+bind -n C-l clear-history \; display-message "tmux history cleared"
+
 
 # -- tpm -----------------------------------------------------------------------
 
