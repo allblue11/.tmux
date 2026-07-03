@@ -5,3 +5,7 @@
 
 .tmux.conf eol=lf
 .tmux.conf.local eol=lf
+
+# 自定义脚本/片段：tmux source .conf、shell 执行 .sh，CRLF 会 \r 报错 → 强制 LF
+*.sh   eol=lf
+*.conf eol=lf
