@@ -271,7 +271,7 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} | #{pretty_pane_current_path} "
-tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized} #{?mouse,#[fg=#5fd75f]mouse:on ,#[fg=#e4e4e4]#[bg=#d70000] mouse:OFF #[default]}#[bg=#005f87,fg=#e4e4e4] #(~/.tmux/status-buffer.sh) #[bg=#080808,fg=#8a8a8a,nobold] , %R , %Y-%m-%d | #{username}#{root} | #{hostname} "
+tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized} #{?mouse,#[fg=#5fd75f]mouse:on ,#[fg=#e4e4e4]#[bg=#d70000] mouse:OFF #[default]}#{?#{m:*focused*,#{client_flags}},#[bg=#005f87],#[bg=default]}#[fg=#e4e4e4] #(~/.tmux/status-buffer.sh) #[bg=default,fg=#8a8a8a,nobold] , %R , %Y-%m-%d | #{username}#{root} | #{hostname} "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_7,$tmux_conf_theme_colour_8"
@@ -432,6 +432,15 @@ set -g prefix2 None
 # 默认开鼠标：cc 没有自己的滚动、Tabby 又被 alternate-screen 旁路，往上翻历史全靠 tmux 的滚轮→copy-mode
 # Ctrl+B m 仍可临时开关（oh-my-tmux 自带），状态栏右侧有 mouse:on/OFF 提示，误关一眼看得见
 set -g mouse on
+
+# 失焦变色：Tabby 窗口失去系统焦点时，整条状态栏转鲜红、当前窗口高亮变亮红，一眼看出没聚焦；焦点回来自动还原
+# 依赖 focus-events on（本环境默认已开）+ Tabby 支持焦点上报；花括号内直接 set，零 fork（不再每次焦点变化起 shell）
+set-hook -g client-focus-out { set -g status-style 'fg=#ffffff,bg=#d70000' ; set -g window-status-style 'fg=#ffffff,bg=#d70000' ; set -g window-status-current-style 'fg=#870000,bg=#ff8787,bold' }
+set-hook -g client-focus-in  { set -g status-style 'fg=#8a8a8a,bg=#080808,none' ; set -g window-status-style 'fg=#8a8a8a,bg=#080808,none' ; set -g window-status-current-style 'fg=#080808,bg=#00afff,bold' }
+
+# 修单击空复制：client-attached 时应用守卫（此时 oh-my-tmux 的 _apply_configuration 已跑完，无覆盖竞态）
+# hook 不会被 _apply_configuration 覆盖；脚本自愈反复覆盖直到守卫版生效
+set-hook -g client-attached { run-shell "~/.tmux/fix-mouse-copy.sh" }
 
 # 复制到 Windows 剪贴板：先把 UTF-8 转成 UTF-16LE 再喂 clip.exe，否则中文被按 GBK 解读会乱码
 # copy-command 集中放转换命令，各复制键统一用不带参数的 copy-pipe-and-cancel 走它
