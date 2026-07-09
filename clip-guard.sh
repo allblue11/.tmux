@@ -4,5 +4,5 @@
 # 把剪贴板清空 + 弹「已复制」。所有复制路径统一走这里。
 data=$(cat)
 if [[ "$data" == *[!$' \t\r\n']* ]]; then
-  printf '%s' "$data" | clip.exe
+  printf '%s' "$data" | iconv -c -f UTF-8 -t UTF-16LE | clip.exe
 fi
